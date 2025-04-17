@@ -23,6 +23,8 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "Shared"
             isStatic = true
+            export(libs.kotlinx.coroutines.core)
+            export(libs.ktor.client.core)
         }
     }
 

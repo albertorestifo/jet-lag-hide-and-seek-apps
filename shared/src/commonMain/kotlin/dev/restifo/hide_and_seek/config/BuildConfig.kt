@@ -1,12 +1,9 @@
 package dev.restifo.hide_and_seek.config
 
-import kotlin.native.ObjCName
-
 /**
  * Build configuration for the application.
  * This class provides environment-specific configurations.
  */
-@ObjCName("BuildConfig")
 object BuildConfig {
     /**
      * Enum representing the different environments the app can run in.
