@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
@@ -16,9 +17,9 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     sourceSets {
-        
+
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
@@ -41,6 +42,10 @@ android {
     namespace = "dev.restifo.hide_and_seek"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "dev.restifo.hide_and_seek"
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -54,8 +59,13 @@ android {
         }
     }
     buildTypes {
+        getByName("debug") {
+            isMinifyEnabled = false
+            buildConfigField("Boolean", "IS_DEVELOPMENT", "true")
+        }
         getByName("release") {
             isMinifyEnabled = false
+            buildConfigField("Boolean", "IS_DEVELOPMENT", "false")
         }
     }
     compileOptions {
