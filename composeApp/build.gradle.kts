@@ -52,6 +52,14 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
     }
     packaging {
         resources {
@@ -67,6 +75,18 @@ android {
             isMinifyEnabled = false
             buildConfigField("Boolean", "IS_DEVELOPMENT", "false")
         }
+    }
+
+    dependencies {
+        testImplementation(libs.kotlin.test)
+        testImplementation(libs.kotlin.test.junit)
+        testImplementation(libs.junit)
+        testImplementation(libs.androidx.test.junit)
+        testImplementation(libs.androidx.espresso.core)
+        testImplementation(libs.compose.ui.test)
+        testImplementation(libs.robolectric)
+        testImplementation(libs.mockk)
+        testImplementation(libs.kotlinx.coroutines.test)
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
