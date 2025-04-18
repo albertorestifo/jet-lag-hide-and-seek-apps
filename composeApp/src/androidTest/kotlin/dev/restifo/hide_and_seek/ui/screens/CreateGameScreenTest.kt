@@ -16,7 +16,7 @@ class CreateGameScreenTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun createGameScreen_displaysAllElements() {
+    fun createGameScreen_displaysInitialElements() {
         // Arrange
         composeTestRule.setContent {
             CreateGameScreen(
@@ -26,9 +26,9 @@ class CreateGameScreenTest {
 
         // Assert
         composeTestRule.onNodeWithText("Create New Game").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Game Creation Wizard").assertIsDisplayed()
-        composeTestRule.onNodeWithText("This screen will be implemented in a future update.").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Go Back").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Select Game Area").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Enter a city, region, or country name").assertIsDisplayed()
+        composeTestRule.onNode(hasSetTextAction()).assertIsDisplayed() // Search field
     }
 
     @Test
@@ -52,22 +52,24 @@ class CreateGameScreenTest {
     }
 
     @Test
-    fun createGameScreen_callsOnBackWhenGoBackButtonIsClicked() {
+    fun createGameScreen_searchFieldInteraction() {
         // Arrange
-        var backCalled = false
-
         composeTestRule.setContent {
             CreateGameScreen(
-                onBack = {
-                    backCalled = true
-                }
+                onBack = {}
             )
         }
 
-        // Act
-        composeTestRule.onNodeWithText("Go Back").performClick()
+        // Act - enter text in search field
+        composeTestRule.onNode(hasSetTextAction()).performTextInput("Madrid")
 
-        // Assert
-        assert(backCalled) { "onBack should be called" }
+        // Assert - clear button should appear
+        composeTestRule.onNodeWithContentDescription("Clear").assertIsDisplayed()
+
+        // Act - clear the search
+        composeTestRule.onNodeWithContentDescription("Clear").performClick()
+
+        // Assert - search field should be empty
+        composeTestRule.onNode(hasSetTextAction()).assertTextEquals("")
     }
 }

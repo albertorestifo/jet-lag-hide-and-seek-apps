@@ -4,49 +4,72 @@ import ViewInspector
 @testable import iosApp
 
 class CreateGameScreenTests: XCTestCase {
-    
+
     func testCreateGameScreenInitialState() throws {
         // Given
-        let createGameView = CreateGameView()
-        
+        let createGameView = CreateGameScreen(onBack: {})
+
         // When
         let header = try createGameView.inspect().vStack().hStack(0).text(1).string()
-        let title = try createGameView.inspect().vStack().vStack(1).text(0).string()
-        let description = try createGameView.inspect().vStack().vStack(1).text(1).string()
-        let button = try createGameView.inspect().vStack().vStack(1).button(2)
-        
+
         // Then
         XCTAssertEqual(header, "Create New Game")
-        XCTAssertEqual(title, "Game Creation Wizard")
-        XCTAssertEqual(description, "This screen will be implemented in a future update.")
-        XCTAssertEqual(try button.labelView().text().string(), "Go Back")
+
+        // Check if the LocationSearchView is displayed initially
+        let locationSearchView = try createGameView.inspect().vStack().find(LocationSearchView.self)
+        XCTAssertNotNil(locationSearchView)
     }
-    
+
     func testBackButtonNavigation() throws {
         // Given
         var backCalled = false
-        let createGameView = CreateGameView(
-            onDismiss: { backCalled = true }
-        )
-        
+        let createGameView = CreateGameScreen(onBack: { backCalled = true })
+
         // When
         try createGameView.inspect().vStack().hStack(0).button(0).tap()
-        
+
         // Then
         XCTAssertTrue(backCalled)
     }
-    
-    func testGoBackButtonNavigation() throws {
+
+    func testLocationSearchView() throws {
         // Given
-        var backCalled = false
-        let createGameView = CreateGameView(
-            onDismiss: { backCalled = true }
+        let locationSearchView = LocationSearchView(
+            searchQuery: .constant(""),
+            onSearchQueryChange: { _ in },
+            searchResults: [],
+            onLocationSelected: { _ in },
+            isSearching: false,
+            onClearSearch: {}
         )
-        
+
         // When
-        try createGameView.inspect().vStack().vStack(1).button(2).tap()
-        
+        let title = try locationSearchView.inspect().vStack().text(0).string()
+        let subtitle = try locationSearchView.inspect().vStack().text(1).string()
+
         // Then
-        XCTAssertTrue(backCalled)
+        XCTAssertEqual(title, "Select Game Area")
+        XCTAssertEqual(subtitle, "Enter a city, region, or country name")
+    }
+
+    func testLocationConfirmationView() throws {
+        // Given
+        let locationConfirmationView = LocationConfirmationView(
+            locationName: "Madrid",
+            locationSubtitle: "City",
+            onConfirm: {},
+            onBack: {},
+            isLoading: false
+        )
+
+        // When
+        let title = try locationConfirmationView.inspect().vStack().text(0).string()
+        let locationName = try locationConfirmationView.inspect().vStack().vStack(1).vStack().text(0).string()
+        let locationSubtitle = try locationConfirmationView.inspect().vStack().vStack(1).vStack().text(1).string()
+
+        // Then
+        XCTAssertEqual(title, "Confirm Location")
+        XCTAssertEqual(locationName, "Madrid")
+        XCTAssertEqual(locationSubtitle, "City")
     }
 }
