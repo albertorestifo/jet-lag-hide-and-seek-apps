@@ -53,14 +53,18 @@ open class WebSocketManager {
      * Connect to the WebSocket server.
      *
      * @param websocketUrl The URL of the WebSocket server. If null, uses the default URL from BuildConfig.
+     * @param token The authentication token for the WebSocket connection.
      */
-    open fun connect(websocketUrl: String? = null) {
+    open fun connect(websocketUrl: String? = null, token: String? = null) {
         if (connectionJob != null) return
 
         connectionJob = scope.launch {
             try {
                 wsClient.webSocketSession {
                     url(websocketUrl ?: BuildConfig.webSocketUrl)
+                    if (token != null) {
+                        header("Authorization", "Bearer $token")
+                    }
                 }.also { webSocketSession ->
                     session = webSocketSession
 

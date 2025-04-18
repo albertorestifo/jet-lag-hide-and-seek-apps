@@ -70,7 +70,7 @@ class MockWebSocketManager : WebSocketManager() {
     var lastSentMessage: String? = null
     var lastMessageType: String? = null
 
-    override fun connect(websocketUrl: String?) {
+    override fun connect(websocketUrl: String?, token: String?) {
         lastConnectedUrl = websocketUrl
     }
 

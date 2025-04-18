@@ -5,14 +5,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import dev.restifo.hide_and_seek.HideAndSeekApp
+import androidx.lifecycle.lifecycleScope
+import dev.restifo.hide_and_seek.game.GameService
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize the app with the correct environment
-        HideAndSeekApp.initialize(BuildConfig.IS_DEVELOPMENT)
+        // Restore connection if available
+        if (savedInstanceState == null) {
+            // Only restore on fresh start, not configuration change
+            lifecycleScope.launch {
+                GameService.getInstance().restoreConnection()
+            }
+        }
 
         setContent {
             App()

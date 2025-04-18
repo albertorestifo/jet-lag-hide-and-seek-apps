@@ -1,6 +1,8 @@
 package dev.restifo.hide_and_seek.game
 
 import dev.restifo.hide_and_seek.network.*
+import dev.restifo.hide_and_seek.persistence.ConnectionCredentials
+import dev.restifo.hide_and_seek.persistence.GamePersistenceManager
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -9,20 +11,37 @@ import kotlin.test.assertTrue
 class GameServiceTest {
 
     @Test
-    fun testGameServiceStructure() {
-        // Given
-        val gameService = GameService.getInstance()
+    fun testGameServiceBasics() {
+        // This test verifies that the GameService class can be instantiated
+        // and basic operations work
+        val mockWebSocketManager = MockGameWebSocketManager()
+        val mockPersistenceManager = MockGamePersistenceManager()
 
-        // Then - verify the service is properly initialized
-        assertFalse(gameService.apiService == null)
-        assertFalse(gameService.webSocketManager == null)
+        // Create a GameService instance with mocks
+        val gameService = GameService(
+            apiService = MockHideAndSeekApiService(),
+            webSocketManager = mockWebSocketManager,
+            gameState = GameState.getInstance(),
+            persistenceManager = mockPersistenceManager
+        )
+
+        // Verify the service can be used
+        assertFalse(mockWebSocketManager.disconnectCalled)
     }
 
     @Test
     fun testLeaveGame() {
         // Given
-        val gameService = GameService.getInstance()
         val gameState = GameState.getInstance()
+        val mockWebSocketManager = MockGameWebSocketManager()
+        val mockPersistenceManager = MockGamePersistenceManager()
+
+        val gameService = GameService(
+            apiService = MockHideAndSeekApiService(),
+            webSocketManager = mockWebSocketManager,
+            gameState = gameState,
+            persistenceManager = mockPersistenceManager
+        )
 
         // Setup initial state
         val player = Player(id = "player-1", name = "John", is_creator = true)
@@ -30,10 +49,7 @@ class GameServiceTest {
         gameState.setCurrentPlayerId("player-1")
         gameState.setConnected(true)
 
-        val mockWebSocketManager = MockGameWebSocketManager()
-
-        // Replace the real WebSocket manager with our mock
-        gameService.webSocketManager = mockWebSocketManager
+        // Setup is already done in the constructor
 
         // When
         gameService.leaveGame()
@@ -43,6 +59,7 @@ class GameServiceTest {
         assertTrue(mockWebSocketManager.disconnectCalled)
         assertTrue(gameState.playersFlow.value.isEmpty())
         assertFalse(gameState.isConnectedFlow.value)
+        assertTrue(mockPersistenceManager.clearConnectionCredentialsCalled)
     }
 
 /**
@@ -53,7 +70,7 @@ class MockGameWebSocketManager : GameWebSocketManager() {
     var disconnectCalled: Boolean = false
     var leaveGameCalled: Boolean = false
 
-    override fun connect(websocketUrl: String) {
+    override fun connect(websocketUrl: String, token: String?) {
         lastConnectedUrl = websocketUrl
         GameState.getInstance().setConnected(true)
     }
@@ -65,6 +82,34 @@ class MockGameWebSocketManager : GameWebSocketManager() {
 
     override fun sendLeaveGame() {
         leaveGameCalled = true
+    }
+}
+
+/**
+ * Mock implementation of GamePersistenceManager for testing.
+ */
+class MockGamePersistenceManager : GamePersistenceManager {
+    var saveConnectionCredentialsCalled = false
+    var loadConnectionCredentialsCalled = false
+    var clearConnectionCredentialsCalled = false
+    var credentials: ConnectionCredentials? = null
+
+    override fun saveConnectionCredentials(gameId: String, token: String) {
+        saveConnectionCredentialsCalled = true
+        credentials = ConnectionCredentials(
+            gameId = gameId,
+            token = token
+        )
+    }
+
+    override fun loadConnectionCredentials(): ConnectionCredentials? {
+        loadConnectionCredentialsCalled = true
+        return credentials
+    }
+
+    override fun clearConnectionCredentials() {
+        clearConnectionCredentialsCalled = true
+        credentials = null
     }
 }
 

@@ -33,9 +33,12 @@ open class GameWebSocketManager(
 
     /**
      * Connects to the game WebSocket.
+     *
+     * @param websocketUrl The URL of the WebSocket server.
+     * @param token The authentication token for the WebSocket connection.
      */
-    open fun connect(websocketUrl: String) {
-        webSocketManager.connect(websocketUrl)
+    open fun connect(websocketUrl: String, token: String? = null) {
+        webSocketManager.connect(websocketUrl, token)
         gameState.setConnected(true)
 
         // Start ping job to keep connection alive

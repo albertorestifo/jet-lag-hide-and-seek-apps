@@ -1,17 +1,23 @@
 package dev.restifo.hide_and_seek.game
 
+import dev.restifo.hide_and_seek.config.BuildConfig
 import dev.restifo.hide_and_seek.network.*
+import dev.restifo.hide_and_seek.persistence.GamePersistenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
  * Service for game-related operations.
  */
-class GameService {
+class GameService(
     // Make these properties internal so they can be replaced in tests
-    internal var apiService: HideAndSeekApiService = HideAndSeekApiService.getInstance()
-    internal var webSocketManager: GameWebSocketManager = GameWebSocketManager.getInstance()
-    private val gameState = GameState.getInstance()
+    internal var apiService: HideAndSeekApiService = HideAndSeekApiService.getInstance(),
+    internal var webSocketManager: GameWebSocketManager = GameWebSocketManager.getInstance(),
+    private val gameState: GameState = GameState.getInstance(),
+    private val persistenceManager: GamePersistenceManager = GamePersistenceManager.getInstance()
+) {
+    // Track the current connection token
+    private var currentToken: String? = null
 
     /**
      * Checks if a game exists with the given code.
@@ -33,12 +39,19 @@ class GameService {
         try {
             val response = apiService.joinGame(gameCode, playerName)
 
-            // Update game state
-            gameState.updateGame(response.game)
-            gameState.setCurrentPlayerId(response.player_id)
+            // Save the token
+            currentToken = response.token
 
-            // Connect to WebSocket
-            webSocketManager.connect(response.websocket_url)
+            // Connect to WebSocket with token
+            webSocketManager.connect(response.websocket_url, response.token)
+
+            // Persist the connection credentials
+            persistenceManager.saveConnectionCredentials(
+                gameId = response.game_id,
+                token = response.token
+            )
+
+            // Game state will be received via WebSocket
 
             return@withContext true
         } catch (e: Exception) {
@@ -60,8 +73,37 @@ class GameService {
 
             // Clear game state
             gameState.clear()
+
+            // Clear persistence
+            persistenceManager.clearConnectionCredentials()
+            currentToken = null
         } catch (e: Exception) {
             gameState.setError("Error leaving game: ${e.message}")
+        }
+    }
+
+    /**
+     * Restores the connection from persistence if available.
+     * Returns true if connection was restored, false otherwise.
+     */
+    suspend fun restoreConnection(): Boolean = withContext(Dispatchers.Default) {
+        val credentials = persistenceManager.loadConnectionCredentials() ?: return@withContext false
+
+        try {
+            // Save current token for reconnection
+            currentToken = credentials.token
+
+            // Connect to WebSocket with token
+            // The WebSocket URL is constructed from the game ID
+            val websocketUrl = "${BuildConfig.apiBaseUrl}/api/games/${credentials.gameId}/ws"
+            webSocketManager.connect(websocketUrl, credentials.token)
+
+            // Game state will be received via WebSocket
+            return@withContext true
+        } catch (e: Exception) {
+            gameState.setError("Error restoring connection: ${e.message}")
+            persistenceManager.clearConnectionCredentials()
+            return@withContext false
         }
     }
 

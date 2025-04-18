@@ -134,6 +134,7 @@ data class JoinGameResponse(
     val game_id: String,
     val player_id: String,
     val websocket_url: String,
+    val token: String,
     val game: Game
 )
 
