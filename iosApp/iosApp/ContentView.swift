@@ -97,6 +97,7 @@ struct ContentView: View {
 
 struct PlayerNameView: View {
     let gameCode: String
+    var onDismiss: (() -> Void)? = nil
     @State private var playerName: String = ""
     @State private var isError: Bool = false
     @State private var showGameLobby: Bool = false
@@ -107,7 +108,10 @@ struct PlayerNameView: View {
             VStack(spacing: 20) {
                 // Top bar with back button
                 HStack {
-                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                    Button(action: {
+                        onDismiss?()
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
                         Image(systemName: "arrow.left")
                             .font(.system(size: 20))
                             .foregroundColor(.blue)
@@ -175,13 +179,17 @@ struct PlayerNameView: View {
 }
 
 struct CreateGameView: View {
+    var onDismiss: (() -> Void)? = nil
     @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
         VStack(spacing: 20) {
             // Top bar with back button
             HStack {
-                Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                Button(action: {
+                    onDismiss?()
+                    presentationMode.wrappedValue.dismiss()
+                }) {
                     Image(systemName: "arrow.left")
                         .font(.system(size: 20))
                         .foregroundColor(.blue)
@@ -207,7 +215,10 @@ struct CreateGameView: View {
                     .multilineTextAlignment(.center)
                     .padding()
 
-                Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                Button(action: {
+                    onDismiss?()
+                    presentationMode.wrappedValue.dismiss()
+                }) {
                     Text("Go Back")
                         .font(.headline)
                         .foregroundColor(.white)
@@ -229,13 +240,17 @@ struct CreateGameView: View {
 struct GameLobbyView: View {
     let gameCode: String
     let playerName: String
+    var onDismiss: (() -> Void)? = nil
     @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
         VStack(spacing: 20) {
             // Top bar with back button
             HStack {
-                Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                Button(action: {
+                    onDismiss?()
+                    presentationMode.wrappedValue.dismiss()
+                }) {
                     Image(systemName: "arrow.left")
                         .font(.system(size: 20))
                         .foregroundColor(.blue)
@@ -264,7 +279,10 @@ struct GameLobbyView: View {
                     .multilineTextAlignment(.center)
                     .padding()
 
-                Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                Button(action: {
+                    onDismiss?()
+                    presentationMode.wrappedValue.dismiss()
+                }) {
                     Text("Leave Game")
                         .font(.headline)
                         .foregroundColor(.white)

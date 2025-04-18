@@ -42,12 +42,24 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
         }
 
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+
         androidMain.dependencies {
             implementation(libs.ktor.client.cio)
         }
 
+        androidUnitTest.dependencies {
+            implementation(libs.kotlin.test.junit)
+        }
+
         iosMain.dependencies {
             implementation(libs.ktor.client.cio)
+        }
+
+        iosTest.dependencies {
+            implementation(libs.kotlin.test)
         }
     }
 }
