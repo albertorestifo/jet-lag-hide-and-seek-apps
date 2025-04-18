@@ -9,7 +9,12 @@ struct iOSApp: App {
 
         // Restore connection if available
         Task {
-            let _ = try? await GameService.Companion().getInstance().restoreConnection()
+            do {
+                let restored = try await GameService.Companion().getInstance().restoreConnection()
+                print("Connection restored: \((restored as? Bool) == true)")
+            } catch {
+                print("Error restoring connection: \(error)")
+            }
         }
     }
 
