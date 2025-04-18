@@ -6,9 +6,9 @@ struct iOSApp: App {
     init() {
         // Initialize the app with the correct environment
         #if DEBUG
-        IosAppInitializerKt.doInitialize(isDevelopment: true)
+        IosAppInitializer.shared.doInitialize(isDevelopment: true)
         #else
-        IosAppInitializerKt.doInitialize(isDevelopment: false)
+        IosAppInitializer.shared.doInitialize(isDevelopment: false)
         #endif
     }
 

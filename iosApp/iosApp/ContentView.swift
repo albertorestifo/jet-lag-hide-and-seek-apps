@@ -5,9 +5,9 @@ struct ContentView: View {
     @State private var showContent = false
 
     // Get environment information from BuildConfig
-    let isDevelopment: Bool = BuildConfigKt.isDevelopment
-    let apiBaseUrl: String = BuildConfigKt.getApiBaseUrl()
-    let webSocketUrl: String = BuildConfigKt.getWebSocketUrl()
+    let isDevelopment: Bool = BuildConfig.shared.isDevelopment
+    let apiBaseUrl: String = BuildConfig.shared.apiBaseUrl
+    let webSocketUrl: String = BuildConfig.shared.webSocketUrl
 
     var body: some View {
         VStack(spacing: 20) {
