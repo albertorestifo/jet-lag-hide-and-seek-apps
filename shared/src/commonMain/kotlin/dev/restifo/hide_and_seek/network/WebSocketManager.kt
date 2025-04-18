@@ -21,7 +21,7 @@ import kotlinx.serialization.json.Json
  * Manager for WebSocket connections to the backend.
  */
 class WebSocketManager {
-    private val json = Json {
+    val json = Json {
         prettyPrint = true
         isLenient = true
         ignoreUnknownKeys = true

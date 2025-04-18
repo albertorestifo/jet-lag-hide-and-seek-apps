@@ -36,7 +36,7 @@ class ApiClient {
         }
 
         // Configure default request settings
-        install(DefaultRequest) {
+        defaultRequest {
             url(BuildConfig.apiBaseUrl)
             contentType(ContentType.Application.Json)
         }

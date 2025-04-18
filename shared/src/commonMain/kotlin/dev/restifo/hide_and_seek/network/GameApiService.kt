@@ -4,7 +4,6 @@ import dev.restifo.hide_and_seek.config.BuildConfig
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.client.plugins.defaultRequest.*
 import kotlinx.serialization.Serializable
 
 /**
