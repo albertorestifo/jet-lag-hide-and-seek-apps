@@ -20,7 +20,7 @@ import kotlinx.serialization.json.Json
 /**
  * Manager for WebSocket connections to the backend.
  */
-class WebSocketManager {
+open class WebSocketManager {
     val json = Json {
         prettyPrint = true
         isLenient = true
@@ -54,7 +54,7 @@ class WebSocketManager {
      *
      * @param websocketUrl The URL of the WebSocket server. If null, uses the default URL from BuildConfig.
      */
-    fun connect(websocketUrl: String? = null) {
+    open fun connect(websocketUrl: String? = null) {
         if (connectionJob != null) return
 
         connectionJob = scope.launch {
@@ -88,7 +88,7 @@ class WebSocketManager {
     /**
      * Disconnect from the WebSocket server.
      */
-    fun disconnect() {
+    open fun disconnect() {
         connectionJob?.cancel()
         connectionJob = null
         session = null
@@ -97,7 +97,7 @@ class WebSocketManager {
     /**
      * Send a message to the WebSocket server.
      */
-    fun sendMessage(message: String) {
+    open fun sendMessage(message: String) {
         scope.launch {
             session?.send(Frame.Text(message))
         }

@@ -9,13 +9,54 @@ import kotlinx.serialization.Serializable
 /**
  * Service for interacting with the Hide and Seek game API.
  */
-class HideAndSeekApiService {
+interface HideAndSeekApiService {
+    /**
+     * Check if a game exists with the given code.
+     */
+    suspend fun checkGameExists(gameCode: String): CheckGameExistsResponse
+
+    /**
+     * Join a game with the given code and player name.
+     */
+    suspend fun joinGame(gameCode: String, playerName: String): JoinGameResponse
+
+    /**
+     * Create a new game.
+     */
+    suspend fun createGame(location: Location, settings: GameSettings, creatorName: String): CreateGameResponse
+
+    /**
+     * Get a game by ID.
+     */
+    suspend fun getGame(gameId: String): Game
+
+    /**
+     * Start a game.
+     */
+    suspend fun startGame(gameId: String): Game
+
+    companion object {
+        private var instance: HideAndSeekApiService? = null
+
+        fun getInstance(): HideAndSeekApiService {
+            if (instance == null) {
+                instance = HideAndSeekApiServiceImpl()
+            }
+            return instance!!
+        }
+    }
+}
+
+/**
+ * Implementation of the HideAndSeekApiService interface.
+ */
+class HideAndSeekApiServiceImpl : HideAndSeekApiService {
     private val apiClient = ApiClient.getInstance()
 
     /**
      * Check if a game exists with the given code.
      */
-    suspend fun checkGameExists(gameCode: String): CheckGameExistsResponse {
+    override suspend fun checkGameExists(gameCode: String): CheckGameExistsResponse {
         return apiClient.httpClient.get {
             url("${BuildConfig.apiBaseUrl}/api/games/check/$gameCode")
         }.body()
@@ -24,7 +65,7 @@ class HideAndSeekApiService {
     /**
      * Join an existing game.
      */
-    suspend fun joinGame(gameCode: String, playerName: String): JoinGameResponse {
+    override suspend fun joinGame(gameCode: String, playerName: String): JoinGameResponse {
         return apiClient.httpClient.post {
             url("${BuildConfig.apiBaseUrl}/api/games/join")
             contentType(ContentType.Application.Json)
@@ -33,9 +74,14 @@ class HideAndSeekApiService {
     }
 
     /**
-     * Create a new game (placeholder for now).
+     * Create a new game.
      */
-    suspend fun createGame(request: CreateGameRequest): CreateGameResponse {
+    override suspend fun createGame(location: Location, settings: GameSettings, creatorName: String): CreateGameResponse {
+        val request = CreateGameRequest(
+            location = location,
+            settings = settings,
+            creator = Creator(name = creatorName)
+        )
         return apiClient.httpClient.post {
             url("${BuildConfig.apiBaseUrl}/api/games")
             contentType(ContentType.Application.Json)
@@ -43,19 +89,22 @@ class HideAndSeekApiService {
         }.body()
     }
 
-    companion object {
-        // Singleton instance
-        private var instance: HideAndSeekApiService? = null
+    /**
+     * Get a game by ID.
+     */
+    override suspend fun getGame(gameId: String): Game {
+        return apiClient.httpClient.get {
+            url("${BuildConfig.apiBaseUrl}/api/games/$gameId")
+        }.body()
+    }
 
-        /**
-         * Get the singleton instance of the API service.
-         */
-        fun getInstance(): HideAndSeekApiService {
-            if (instance == null) {
-                instance = HideAndSeekApiService()
-            }
-            return instance!!
-        }
+    /**
+     * Start a game.
+     */
+    override suspend fun startGame(gameId: String): Game {
+        return apiClient.httpClient.post {
+            url("${BuildConfig.apiBaseUrl}/api/games/$gameId/start")
+        }.body()
     }
 }
 

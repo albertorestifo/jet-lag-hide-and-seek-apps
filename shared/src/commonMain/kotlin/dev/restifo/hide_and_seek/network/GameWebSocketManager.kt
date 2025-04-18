@@ -11,12 +11,13 @@ import kotlinx.serialization.json.*
 /**
  * Manages WebSocket connections for game updates.
  */
-class GameWebSocketManager {
-    private val webSocketManager = WebSocketManager.getInstance()
+open class GameWebSocketManager(
+    private val webSocketManager: WebSocketManager = WebSocketManager.getInstance()
+) {
     private val gameState = GameState.getInstance()
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var pingJob: Job? = null
-    
+
     init {
         // Listen for WebSocket messages
         scope.launch {
@@ -29,14 +30,14 @@ class GameWebSocketManager {
             }
         }
     }
-    
+
     /**
      * Connects to the game WebSocket.
      */
-    fun connect(websocketUrl: String) {
+    open fun connect(websocketUrl: String) {
         webSocketManager.connect(websocketUrl)
         gameState.setConnected(true)
-        
+
         // Start ping job to keep connection alive
         pingJob?.cancel()
         pingJob = scope.launch {
@@ -46,23 +47,23 @@ class GameWebSocketManager {
             }
         }
     }
-    
+
     /**
      * Disconnects from the game WebSocket.
      */
-    fun disconnect() {
+    open fun disconnect() {
         pingJob?.cancel()
         webSocketManager.disconnect()
         gameState.setConnected(false)
     }
-    
+
     /**
      * Handles incoming WebSocket messages.
      */
     private fun handleWebSocketMessage(message: String) {
         val jsonElement = Json.parseToJsonElement(message)
         val type = jsonElement.jsonObject["type"]?.jsonPrimitive?.content
-        
+
         when (type) {
             "player_joined" -> handlePlayerJoined(jsonElement)
             "player_left" -> handlePlayerLeft(jsonElement)
@@ -73,7 +74,7 @@ class GameWebSocketManager {
             else -> gameState.setError("Unknown message type: $type")
         }
     }
-    
+
     /**
      * Handles player_joined events.
      */
@@ -81,29 +82,29 @@ class GameWebSocketManager {
         val player = jsonElement.jsonObject["data"]?.jsonObject?.get("player")?.let {
             Json.decodeFromJsonElement<Player>(it)
         }
-        
+
         if (player != null) {
             gameState.addPlayer(player)
         }
     }
-    
+
     /**
      * Handles player_left events.
      */
     private fun handlePlayerLeft(jsonElement: JsonElement) {
         val playerId = jsonElement.jsonObject["data"]?.jsonObject?.get("player_id")?.jsonPrimitive?.content
-        
+
         if (playerId != null) {
             gameState.removePlayer(playerId)
         }
     }
-    
+
     /**
      * Handles game_started events.
      */
     private fun handleGameStarted(jsonElement: JsonElement) {
         val startedAt = jsonElement.jsonObject["data"]?.jsonObject?.get("started_at")?.jsonPrimitive?.content
-        
+
         // Update game status
         val currentGame = gameState.gameFlow.value
         if (currentGame != null && startedAt != null) {
@@ -113,7 +114,7 @@ class GameWebSocketManager {
             ))
         }
     }
-    
+
     /**
      * Handles game_updated events.
      */
@@ -121,22 +122,22 @@ class GameWebSocketManager {
         val game = jsonElement.jsonObject["data"]?.jsonObject?.get("game")?.let {
             Json.decodeFromJsonElement<Game>(it)
         }
-        
+
         if (game != null) {
             gameState.updateGame(game)
         }
     }
-    
+
     /**
      * Handles error events.
      */
     private fun handleError(jsonElement: JsonElement) {
         val code = jsonElement.jsonObject["data"]?.jsonObject?.get("code")?.jsonPrimitive?.content
         val message = jsonElement.jsonObject["data"]?.jsonObject?.get("message")?.jsonPrimitive?.content
-        
+
         gameState.setError("Error ($code): $message")
     }
-    
+
     /**
      * Sends a ping message to keep the connection alive.
      */
@@ -144,18 +145,18 @@ class GameWebSocketManager {
         val pingMessage = WebSocketMessage(type = "ping", data = emptyMap())
         webSocketManager.sendObject(pingMessage)
     }
-    
+
     /**
      * Sends a leave_game message.
      */
-    fun sendLeaveGame() {
+    open fun sendLeaveGame() {
         val leaveMessage = WebSocketMessage(type = "leave_game", data = emptyMap())
         webSocketManager.sendObject(leaveMessage)
     }
-    
+
     companion object {
         private var instance: GameWebSocketManager? = null
-        
+
         fun getInstance(): GameWebSocketManager {
             if (instance == null) {
                 instance = GameWebSocketManager()
