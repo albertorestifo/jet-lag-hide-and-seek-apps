@@ -14,6 +14,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.testTag
+import dev.restifo.hide_and_seek.game.GameService
 import kotlinx.coroutines.launch
 
 /**
@@ -28,8 +29,10 @@ fun MainScreen(
 ) {
     var gameCode by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
+    var isCheckingGame by remember { mutableStateOf(false) }
 
     val scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState)
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -93,7 +96,19 @@ fun MainScreen(
                 Button(
                     onClick = {
                         if (gameCode.length == 6) {
-                            onJoinGame(gameCode)
+                            // Check if game exists
+                            isCheckingGame = true
+                            coroutineScope.launch {
+                                val gameService = GameService.getInstance()
+                                val exists = gameService.checkGameExists(gameCode)
+                                isCheckingGame = false
+
+                                if (exists) {
+                                    onJoinGame(gameCode)
+                                } else {
+                                    snackbarHostState.showSnackbar("Game with code $gameCode does not exist")
+                                }
+                            }
                         } else {
                             isError = true
                         }

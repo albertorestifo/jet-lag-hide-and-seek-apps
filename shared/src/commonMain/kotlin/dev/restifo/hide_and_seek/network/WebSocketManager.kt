@@ -51,14 +51,16 @@ class WebSocketManager {
 
     /**
      * Connect to the WebSocket server.
+     *
+     * @param websocketUrl The URL of the WebSocket server. If null, uses the default URL from BuildConfig.
      */
-    fun connect() {
+    fun connect(websocketUrl: String? = null) {
         if (connectionJob != null) return
 
         connectionJob = scope.launch {
             try {
                 wsClient.webSocketSession {
-                    url(BuildConfig.webSocketUrl)
+                    url(websocketUrl ?: BuildConfig.webSocketUrl)
                 }.also { webSocketSession ->
                     session = webSocketSession
 

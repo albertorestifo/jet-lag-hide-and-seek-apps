@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.testTag
+import dev.restifo.hide_and_seek.game.GameService
+import dev.restifo.hide_and_seek.game.GameState
 import kotlinx.coroutines.launch
 
 /**
@@ -26,8 +28,12 @@ fun PlayerNameScreen(
 ) {
     var playerName by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
+    var localIsLoading by remember { mutableStateOf(isLoading) }
 
     val scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState)
+    val coroutineScope = rememberCoroutineScope()
+    val gameService = remember { GameService.getInstance() }
+    val gameState = remember { GameState.getInstance() }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -82,7 +88,20 @@ fun PlayerNameScreen(
                 Button(
                     onClick = {
                         if (playerName.isNotBlank()) {
-                            onJoinWithName(gameCode, playerName)
+                            // Join the game
+                            localIsLoading = true
+                            coroutineScope.launch {
+                                val success = gameService.joinGame(gameCode, playerName)
+                                localIsLoading = false
+
+                                if (success) {
+                                    // Successfully joined the game and connected to WebSocket
+                                    onJoinWithName(gameCode, playerName)
+                                } else {
+                                    // Error is already set in GameState
+                                    // The error will be shown via the snackbar in AppNavigation
+                                }
+                            }
                         } else {
                             isError = true
                         }
@@ -90,14 +109,14 @@ fun PlayerNameScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
-                    enabled = !isLoading
+                    enabled = !localIsLoading
                 ) {
                     Text("Join Game")
                 }
             }
 
             // Loading indicator
-            if (isLoading) {
+            if (localIsLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
