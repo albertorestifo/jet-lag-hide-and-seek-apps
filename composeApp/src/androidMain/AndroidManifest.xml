@@ -14,9 +14,7 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="@string/MAPS_API_KEY" />
+        <!-- MapTiler API key is set programmatically from environment variable -->
         <activity
             android:exported="true"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|mnc|colorMode|density|fontScale|fontWeightAdjustment|keyboard|layoutDirection|locale|mcc|navigation|smallestScreenSize|touchscreen|uiMode"

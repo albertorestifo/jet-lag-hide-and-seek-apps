@@ -1,0 +1,9 @@
+target 'iosApp' do
+  use_frameworks!
+  platform :ios, '14.0'
+  
+  # Add MapLibre/Mapbox SDK
+  pod 'Mapbox-iOS-SDK', '~> 6.4.0'
+  
+  # Add other dependencies as needed
+end

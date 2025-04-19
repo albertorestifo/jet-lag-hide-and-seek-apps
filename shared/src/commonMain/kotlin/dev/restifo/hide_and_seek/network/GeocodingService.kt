@@ -4,7 +4,6 @@ import dev.restifo.hide_and_seek.config.BuildConfig
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
 
 /**
  * Service for geocoding-related operations.
@@ -47,7 +46,7 @@ class GeocodingServiceImpl : GeocodingService {
             parameter("query", query)
             parameter("limit", limit)
         }.body()
-        
+
         return response.data
     }
 
@@ -58,7 +57,7 @@ class GeocodingServiceImpl : GeocodingService {
         val response: ApiResponse<LocationBoundaries> = apiClient.httpClient.get {
             url("${BuildConfig.apiBaseUrl}/api/geocoding/boundaries/$locationId")
         }.body()
-        
+
         return response.data
     }
 }
@@ -95,5 +94,5 @@ data class LocationBoundaries(
     val osm_type: String,
     val type: String? = null,
     val coordinates: List<Double>? = null,
-    val boundaries: JsonElement? = null
+    val boundaries: String? = null
 )

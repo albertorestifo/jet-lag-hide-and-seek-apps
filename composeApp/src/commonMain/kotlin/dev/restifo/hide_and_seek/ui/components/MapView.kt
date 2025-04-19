@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 /**
- * A cross-platform map component.
+ * A cross-platform map component using MapTiler.
  */
 @Composable
 expect fun MapView(

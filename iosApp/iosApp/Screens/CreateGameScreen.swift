@@ -326,6 +326,7 @@ struct LocationConfirmationView: View {
                         latitude: latitude,
                         longitude: longitude,
                         zoomLevel: zoomLevel,
+                        geoJsonData: viewModel.geoJsonBoundaries,
                         onMapLoaded: { mapLoaded = true },
                         onZoomChanged: onZoomChanged
                     )
