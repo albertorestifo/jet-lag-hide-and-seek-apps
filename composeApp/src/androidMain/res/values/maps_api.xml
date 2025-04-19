@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 
+    NOTE: This is a placeholder API key. In a real app, you would:
+    1. Get a real API key from Google Cloud Console
+    2. Store it securely (not in version control)
+    3. Use a build config or gradle properties to inject it
+    -->
+    <string name="MAPS_API_KEY">YOUR_API_KEY_HERE</string>
+</resources>

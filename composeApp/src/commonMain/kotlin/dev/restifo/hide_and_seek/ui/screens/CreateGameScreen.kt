@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.restifo.hide_and_seek.network.LocationSearchResult
+import dev.restifo.hide_and_seek.ui.components.MapView
 import dev.restifo.hide_and_seek.ui.viewmodels.CreateGameViewModel
 
 /**
@@ -84,8 +85,13 @@ fun CreateGameScreen(
                 LocationConfirmationScreen(
                     locationName = selectedLocation.title,
                     locationSubtitle = selectedLocation.subtitle,
+                    latitude = uiState.mapCenterLatitude ?: 0.0,
+                    longitude = uiState.mapCenterLongitude ?: 0.0,
+                    zoomLevel = uiState.mapZoomLevel,
+                    geoJsonData = uiState.geoJsonBoundaries,
                     onConfirm = { /* Will be implemented in next step */ },
                     onBack = { viewModel.clearSelectedLocation() },
+                    onZoomChanged = { viewModel.updateMapZoom(it) },
                     isLoading = uiState.isLoadingBoundaries
                 )
             } else {
@@ -221,10 +227,17 @@ private fun LocationSearchResultItem(
 private fun LocationConfirmationScreen(
     locationName: String,
     locationSubtitle: String,
+    latitude: Double,
+    longitude: Double,
+    zoomLevel: Float,
+    geoJsonData: String?,
     onConfirm: () -> Unit,
     onBack: () -> Unit,
+    onZoomChanged: (Float) -> Unit,
     isLoading: Boolean
 ) {
+    var mapLoaded by remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.fillMaxSize()) {
         Text(
             text = "Confirm Location",
@@ -259,21 +272,28 @@ private fun LocationConfirmationScreen(
             }
         }
 
-        // Map placeholder
+        // Map view
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
                 .padding(vertical = 16.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(Color.LightGray)
                 .border(1.dp, Color.Gray, RoundedCornerShape(8.dp)),
             contentAlignment = Alignment.Center
         ) {
-            if (isLoading) {
+            if (isLoading && !mapLoaded) {
                 CircularProgressIndicator()
             } else {
-                Text("Map will be displayed here")
+                MapView(
+                    modifier = Modifier.fillMaxSize(),
+                    latitude = latitude,
+                    longitude = longitude,
+                    zoomLevel = zoomLevel,
+                    geoJsonData = geoJsonData,
+                    onMapLoaded = { mapLoaded = true },
+                    onZoomChanged = onZoomChanged
+                )
             }
         }
 

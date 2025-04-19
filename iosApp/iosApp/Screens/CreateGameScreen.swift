@@ -11,6 +11,10 @@ class CreateGameViewModel: ObservableObject {
     @Published var isSearching = false
     @Published var isLoadingBoundaries = false
     @Published var errorMessage: String? = nil
+    @Published var mapCenterLatitude: Double? = nil
+    @Published var mapCenterLongitude: Double? = nil
+    @Published var mapZoomLevel: Float = 10.0
+    @Published var geoJsonBoundaries: String? = nil
 
     private var searchTask: Task<Void, Never>? = nil
 
@@ -52,10 +56,17 @@ class CreateGameViewModel: ObservableObject {
     }
 
     func selectLocation(_ location: LocationSearchResult) {
+        // Set initial map center from the location coordinates if available
+        let coordinates = location.coordinates
+        let initialLat = coordinates?.count ?? 0 > 1 ? coordinates?[1] : nil
+        let initialLng = coordinates?.count ?? 0 > 0 ? coordinates?[0] : nil
+
         selectedLocation = location
         searchQuery = location.title
         searchResults = []
         isLoadingBoundaries = true
+        mapCenterLatitude = initialLat
+        mapCenterLongitude = initialLng
 
         Task { [weak self] in
             await self?.loadLocationBoundaries(locationId: location.id)
@@ -66,8 +77,20 @@ class CreateGameViewModel: ObservableObject {
     private func loadLocationBoundaries(locationId: String) async {
         do {
             let boundaries = try await geocodingService.getLocationBoundaries(locationId: locationId)
+
+            // Extract GeoJSON from boundaries if available
+            let boundariesJson = boundaries.boundaries?.description ?? ""
+
+            // Update map center with more precise coordinates from boundaries if available
+            let coordinates = boundaries.coordinates
+            let centerLat = coordinates?.count ?? 0 > 1 ? coordinates?[1] : mapCenterLatitude
+            let centerLng = coordinates?.count ?? 0 > 0 ? coordinates?[0] : mapCenterLongitude
+
             locationBoundaries = boundaries
             isLoadingBoundaries = false
+            mapCenterLatitude = centerLat
+            mapCenterLongitude = centerLng
+            geoJsonBoundaries = boundariesJson
         } catch {
             isLoadingBoundaries = false
             errorMessage = "Error loading location boundaries: \(error.localizedDescription)"
@@ -77,6 +100,13 @@ class CreateGameViewModel: ObservableObject {
     func clearSelectedLocation() {
         selectedLocation = nil
         locationBoundaries = nil
+        mapCenterLatitude = nil
+        mapCenterLongitude = nil
+        geoJsonBoundaries = nil
+    }
+
+    func updateMapZoom(zoomLevel: Float) {
+        mapZoomLevel = zoomLevel
     }
 
     func clearError() {
@@ -114,8 +144,12 @@ struct CreateGameScreen: View {
                 LocationConfirmationView(
                     locationName: selectedLocation.title,
                     locationSubtitle: selectedLocation.subtitle,
+                    latitude: viewModel.mapCenterLatitude ?? 0.0,
+                    longitude: viewModel.mapCenterLongitude ?? 0.0,
+                    zoomLevel: viewModel.mapZoomLevel,
                     onConfirm: { /* Will be implemented in next step */ },
                     onBack: { viewModel.clearSelectedLocation() },
+                    onZoomChanged: { viewModel.updateMapZoom(zoomLevel: $0) },
                     isLoading: viewModel.isLoadingBoundaries
                 )
             } else {
@@ -244,9 +278,14 @@ struct LocationSearchResultItem: View {
 struct LocationConfirmationView: View {
     var locationName: String
     var locationSubtitle: String
+    var latitude: Double
+    var longitude: Double
+    var zoomLevel: Float
     var onConfirm: () -> Void
     var onBack: () -> Void
+    var onZoomChanged: (Float) -> Void
     var isLoading: Bool
+    @State private var mapLoaded = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -270,21 +309,31 @@ struct LocationConfirmationView: View {
             .cornerRadius(8)
             .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
 
-            // Map placeholder
+            // Map view
             ZStack {
-                Rectangle()
-                    .fill(Color(.systemGray5))
+                if isLoading && !mapLoaded {
+                    Rectangle()
+                        .fill(Color(.systemGray5))
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color(.systemGray3), lineWidth: 1)
+                        )
+                    ProgressView()
+                } else {
+                    // Real map implementation
+                    MapView(
+                        latitude: latitude,
+                        longitude: longitude,
+                        zoomLevel: zoomLevel,
+                        onMapLoaded: { mapLoaded = true },
+                        onZoomChanged: onZoomChanged
+                    )
                     .cornerRadius(8)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color(.systemGray3), lineWidth: 1)
                     )
-
-                if isLoading {
-                    ProgressView()
-                } else {
-                    Text("Map will be displayed here")
-                        .foregroundColor(.gray)
                 }
             }
             .frame(maxWidth: .infinity)

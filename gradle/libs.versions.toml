@@ -20,6 +20,8 @@ kotlinx-serialization = "1.8.1"
 compose-test = "1.7.3"
 robolectric = "4.11.1"
 mockk = "1.13.9"
+compose-maps = "4.5.0"
+google-maps = "18.2.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -46,6 +48,10 @@ ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serializatio
 # Kotlinx
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+
+# Maps
+compose-maps = { group = "com.google.maps.android", name = "maps-compose", version.ref = "compose-maps" }
+google-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "google-maps" }
 
 # Testing
 compose-ui-test = { group = "org.jetbrains.compose.ui", name = "ui-test-junit4", version.ref = "compose-test" }

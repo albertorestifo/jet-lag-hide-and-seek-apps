@@ -23,6 +23,8 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.compose.maps)
+            implementation(libs.google.maps)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
